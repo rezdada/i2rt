@@ -94,6 +94,20 @@ class SimRobot(Robot):
         self._stop_event = threading.Event()
         self._physics_thread: Optional[threading.Thread] = None
 
+    # THIS CODE DID NOT INITIALLY COME WITH THE I2RT LIB
+    # ADDED + MODIFIED TO FIT sim_robot.py INITIAL CODE CAME FROM motor_chain_robot.py 
+    # rezdada - last modified: 10/10/26
+    def move_joints(self, target_joint_positions: np.ndarray, time_interval_s: float = 2.0) -> None:
+        """Move the robot to a given joint positions."""
+        current_pos = self.get_joint_pos()
+        assert len(current_pos) == len(target_joint_positions)
+        steps = 50  # 50 steps over time_interval_s
+        for i in range(steps + 1):
+            alpha = i / steps  # Interpolation factor
+            target_pos = (1 - alpha) * current_pos + alpha * target_joint_positions  # Linear interpolation
+            self.command_joint_pos(target_pos)
+            time.sleep(time_interval_s / steps)
+
     def _cmd_to_mj_qpos(self, cmd: np.ndarray) -> np.ndarray:
         """Map command-space positions to MuJoCo qpos.
 
